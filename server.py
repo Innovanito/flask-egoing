@@ -61,7 +61,33 @@ def read(id):
 
 @app.route('/create/', methods=['GET', 'POST'])
 def create():
-    print("request.method", request.method)
+    if (request.method == 'GET'):
+        # form 테그는 사용자가 입력한 정보를 서버로 전송하는 역할임
+        # form 태그를 이용해 정보를 수신하는 방법을 get방식이라고 함
+        content = """
+            <form action="/create/" method="POST">
+                <p><input type="text" name="title" placeholder="title"></p>
+                <p><textarea name="body" placeholder="body" ></textarea></p>
+                <p><input type="submit" value="create"></p>
+            </form>
+        """
+        return template(getContents(), content)
+
+    elif request.method == "POST":
+        global nextId
+        title = request.form['title']
+        body = request.form['body']
+        newTopic = {'id': nextId, 'title': title, 'body': body}
+        topics.append(newTopic)
+        url = '/read/'+str(nextId)+'/'
+        nextId = nextId + 1
+
+        return redirect(url)
+
+
+@app.route('/update/<int:id>/', methods=['GET', 'POST'])
+def update(id):
+
     if (request.method == 'GET'):
         # form 테그는 사용자가 입력한 정보를 서버로 전송하는 역할임
         # form 태그를 이용해 정보를 수신하는 방법을 get방식이라고 함
