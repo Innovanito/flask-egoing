@@ -16,6 +16,7 @@ def template(contents, content, id=None):
     if (id != None):
         contextUI = f'''
             <li><a href="/update/{id}/">update</a></li>
+            <li><form action="/delete/{id}/" method="POST"><input type="submit" value="delete"></form></li>
         '''
     return f"""<!doctype html>
     <html>
@@ -87,15 +88,20 @@ def create():
 
 @app.route('/update/<int:id>/', methods=['GET', 'POST'])
 def update(id):
+    title = ''
+    body = ''
+    for topic in topics:
+        if topic['id'] == id:
+            title = topic['title']
+            body = topic['body']
+            break
 
     if (request.method == 'GET'):
-        # form 테그는 사용자가 입력한 정보를 서버로 전송하는 역할임
-        # form 태그를 이용해 정보를 수신하는 방법을 get방식이라고 함
-        content = """
-            <form action="/create/" method="POST">
-                <p><input type="text" name="title" placeholder="title"></p>
-                <p><textarea name="body" placeholder="body" ></textarea></p>
-                <p><input type="submit" value="create"></p>
+        content = f"""
+            <form action="/update/{id}/" method="POST">
+                <p><input type="text" name="title" placeholder="title" value={title}></p>
+                <p><textarea name="body" placeholder="body" >{body}</textarea></p>
+                <p><input type="submit" value="update"></p>
             </form>
         """
         return template(getContents(), content)
@@ -104,13 +110,24 @@ def update(id):
         global nextId
         title = request.form['title']
         body = request.form['body']
-        newTopic = {'id': nextId, 'title': title, 'body': body}
-        topics.append(newTopic)
-        url = '/read/'+str(nextId)+'/'
-        nextId = nextId + 1
-
+        for topic in topics:
+            if id == topic['id']:
+                topic['title'] = title
+                topic['body'] = body
+                break
+        url = '/read/'+str(id)+'/'
         return redirect(url)
 
 
+@app.route('/delete/<int:id>/', methods=['GET', 'POST'])
+def delete(id):
+    for topic in topics:
+        if id == topic['id']:
+            topics.remove(topic)
+            break
+
+    return redirect('/')
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(port=5001, debug=True)
